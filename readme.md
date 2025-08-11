@@ -1,55 +1,3 @@
-# Welcome to your Lovable project
-
-## Project info
-
-**URL**: https://lovable.dev/projects/e94c0dcc-9726-46b1-a4ad-f88641974390
-
-## How can I edit this code?
-
-There are several ways of editing your application.
-
-**Use Lovable**
-
-Simply visit the [Lovable Project](https://lovable.dev/projects/e94c0dcc-9726-46b1-a4ad-f88641974390) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
-
-**Edit a file directly in GitHub**
-
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
-
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
 ## What technologies are used for this project?
 
 This project is built with:
@@ -60,14 +8,115 @@ This project is built with:
 - shadcn-ui
 - Tailwind CSS
 
-## How can I deploy this project?
+Folders in order:
+  1,Root index.html
 
-Simply open [Lovable](https://lovable.dev/projects/e94c0dcc-9726-46b1-a4ad-f88641974390) and click on Share -> Publish.
+  This is Vite's entry point during development
+  Vite serves this file and injects the compiled JavaScript/CSS
+  Contains a <div id="root"></div> where React mounts
+  References /src/main.tsx via a script tag
 
-## Can I connect a custom domain to my Lovable project?
+  2,src/ folder
 
-Yes, you can!
+  Contains your source code (uncompiled)
+  main.tsx: The entry point that renders your React app
+  App.tsx: Your main React component
+  This code needs to be built/compiled before deployment.
+  "npm run dev" uses this
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+  3,public/ folder (Firebase)
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+  Contains static files served directly by Firebase
+  Should contain your built/compiled application
+  This is what visitors actually receive
+
+  Overall: 
+  src/ (source code) → npm run build → dist/ (browser-ready files)
+
+Given code's database reply:
+
+1. Database Structure
+  The project uses Supabase (PostgreSQL) with this structure:
+
+  posts table:
+
+  id - UUID (primary key, auto-generated)
+  image_url - Text (URL to uploaded image)
+  username - Text (who posted it)
+  location - JSONB (coordinates: {lat: number, lng: number})
+  timestamp - Timestamp (when posted)
+  created_at - Timestamp (database creation time)
+  RLS Policies:
+
+  Anyone can view posts (SELECT)
+  Anyone can insert posts (INSERT)
+  No UPDATE/DELETE allowed
+
+2. Site Communication
+  The site communicates via the Supabase JavaScript client:
+
+  Uses REST API calls through @supabase/supabase-js
+  Configured in src/lib/supabase.ts
+  Direct database queries like: supabase.from('posts').select('*')
+
+3. Database-Connected Files
+  Core Database Files:
+
+  src/lib/supabase.ts - Client configuration & types
+  src/hooks/usePostsFetcher.ts - Fetches all posts from database
+  src/pages/Post.tsx - Saves new posts to database
+  Data Flow:
+
+  Camera → Post page → Supabase database
+  Database → usePostsFetcher → PostsFeed → UI display
+  The app is essentially a photo-posting platform where users capture images with location data and store them in Supabase for others to view.
+
+Example:
+
+1. Posting a New Item - Example Flow
+User Action: Takes photo on /camera → Reviews on /post → Clicks "Post it"
+
+Code Flow:
+
+
+// In src/pages/Post.tsx - savePost function
+const savePost = async () => {
+  const { data, error } = await supabase
+    .from('posts')
+    .insert([{
+      image_url: photo,           // "data:image/jpeg;base64,/9j/4AAQ..."
+      username: username,         // "john_doe"
+      location: location_,        // {lat: 51.5074, lng: -0.1278}
+      timestamp: new Date().toISOString()
+    }]);
+}
+Database Result: New row in posts table with all the data.
+
+2. Loading New Item on List - Example Flow
+Code Flow:
+
+
+// In src/hooks/usePostsFetcher.ts
+const { data: supabasePosts, error } = await supabase
+  .from('posts')
+  .select('*');
+
+// Transforms to UI format:
+{
+  id: "123e4567-e89b-12d3-a456-426614174000",
+  title: "Found Item",
+  image: "data:image/jpeg;base64,/9j/4AAQ...",
+  location: {name: "Posted Location", lat: 51.5074, lng: -0.1278},
+  username: "john_doe"
+}
+UI Result: New post appears in PostsList component automatically.
+
+3. Database Console Access
+Within Lovable: No direct database console available.
+
+External Access: Yes! Supabase provides a full SQL editor:
+
+Go to: https://supabase.com/dashboard/project/rehmwvkkhomzhphwmawt/sql/new
+Run queries like: SELECT * FROM posts ORDER BY created_at DESC;
+Full PostgreSQL access with table browser, RLS policy editor, etc.
+The Supabase dashboard gives you complete database management outside of Lovable.
