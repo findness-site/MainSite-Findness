@@ -8,7 +8,9 @@ import Logo from './components/Logo';
 import Header from './components/Header';
 import BlueSection from './components/BlueSection';
 import LostSection from './components/LostSection';
-import { supabase } from '@/lib/supabase';
+/*import { supabase } from '@/lib/supabase';*/
+import { db } from '@/data/firebase/firebaseClient';
+import { ref, push, serverTimestamp } from 'firebase/database';
 
 const Post = () => {
   const navigate = useNavigate();
@@ -20,14 +22,14 @@ const Post = () => {
   const photo = location.state?.photo || null;
   const username = location.state?.username || '';
   const location_ = location.state?.location || null;
-  
+
   useEffect(() => {
     console.log("Post page received state:", {
       photo: photo ? "photo data exists" : "no photo",
       username,
       location: location_
     });
-    
+
     if (!location_) {
       console.warn("No location data received in Post page");
     }
@@ -47,20 +49,23 @@ const Post = () => {
     console.log("Saving post with location data:", location_);
 
     try {
-      // Save to Supabase
-      const { error, data } = await supabase
-        .from('posts')
-        .insert({
-          image_url: photo,
-          username,
-          location: location_,
-          timestamp: new Date().toISOString()
-        })
-        .select();
+      // 1. Create a reference to the 'posts' list in our database
+      const postsRef = ref(db, 'posts');
 
-      if (error) throw error;
-      
-      console.log("Post successfully saved with data:", data);
+      // 2. Prepare the new post object for Firebase
+      const newPost = {
+        image_url: photo,
+        username: username,
+        location: location_,
+        // Use serverTimestamp for accuracy instead of client's time
+        timestamp: serverTimestamp(),
+        created_at: serverTimestamp(),
+      };
+
+      // 3. Push the new post object to the database
+      await push(postsRef, newPost);
+
+      console.log("Post successfully saved to Firebase.");
 
       navigate('/thanks', { state: { photo, username } });
     } catch (err) {
@@ -95,8 +100,8 @@ const Post = () => {
       <div className="w-full flex flex-col items-center pt-[14px]">
         <div className="px-10 w-full">
           {error ? (
-            <div 
-              className="w-full rounded-t-[30px] shadow-lg mb-4 bg-gray-200 flex flex-col items-center justify-center" 
+            <div
+              className="w-full rounded-t-[30px] shadow-lg mb-4 bg-gray-200 flex flex-col items-center justify-center"
               style={{ height: '302px' }}
             >
               <CameraOff size={48} className="text-gray-500 mb-4" />
@@ -104,16 +109,16 @@ const Post = () => {
             </div>
           ) : photo ? (
             <div className="relative w-full rounded-t-[30px] shadow-lg mb-4">
-              <img 
-                src={photo} 
-                alt="Captured photo" 
-                className="w-full rounded-t-[30px]" 
+              <img
+                src={photo}
+                alt="Captured photo"
+                className="w-full rounded-t-[30px]"
                 style={{ height: '302px', objectFit: 'cover' }}
               />
-              <div 
-                className="absolute bottom-0 left-0 w-full flex items-center justify-center" 
-                style={{ 
-                  height: '40px', 
+              <div
+                className="absolute bottom-0 left-0 w-full flex items-center justify-center"
+                style={{
+                  height: '40px',
                   backgroundColor: '#2977b7'
                 }}
               >
@@ -123,8 +128,8 @@ const Post = () => {
               </div>
             </div>
           ) : (
-            <div 
-              className="w-full rounded-t-[30px] shadow-lg mb-4 bg-gray-200 flex flex-col items-center justify-center" 
+            <div
+              className="w-full rounded-t-[30px] shadow-lg mb-4 bg-gray-200 flex flex-col items-center justify-center"
               style={{ height: '302px' }}
             >
               <CameraOff size={48} className="text-gray-500 mb-4" />
@@ -137,21 +142,21 @@ const Post = () => {
             </div>
           )}
           <div className="flex flex-col justify-center w-full space-y-4 -mt-[10px]">
-            <Button 
+            <Button
               onClick={handlePostIt}
               disabled={!photo || !location_ || isSubmitting}
-              style={{ 
+              style={{
                 backgroundColor: '#2977b7',
                 opacity: (!photo || !location_ || isSubmitting) ? 0.5 : 1
-              }} 
+              }}
               className="w-full hover:bg-[#2266a0] py-[30px] font-nunito text-xl font-normal text-[#f7f4e3] rounded-none rounded-bl-[30px]"
             >
               {isSubmitting ? 'Posting...' : 'Post it'}
             </Button>
-            <Button 
+            <Button
               onClick={handleStartAgain}
               disabled={isSubmitting}
-              style={{ backgroundColor: '#2977b7' }} 
+              style={{ backgroundColor: '#2977b7' }}
               className="w-full hover:bg-[#2266a0] py-[30px] font-nunito text-xl font-normal text-[#f7f4e3] rounded-none rounded-bl-[30px]"
             >
               Start again
