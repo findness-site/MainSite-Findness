@@ -8,6 +8,8 @@ This project is built with:
 - shadcn-ui
 - Tailwind CSS
 
+Reminder: Run "npm run build" before deploying!
+
 Folders in order:
   1,Root index.html
 

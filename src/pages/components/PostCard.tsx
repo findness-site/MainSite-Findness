@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect } from 'react';
-import { Post } from '@/data/mockPosts';
+import { Post } from '@/data/data_types';
 
 interface PostCardProps {
   post: Post;
@@ -38,7 +37,7 @@ const PostCard = ({ post }: PostCardProps) => {
   return (
     <div className="w-full flex flex-col items-center mb-8 px-10">
       <div className="w-full relative">
-        {post.image ? (
+        {post.image_url ? (
           <div 
             className="relative w-full rounded-[30px] shadow-lg cursor-pointer"
             onClick={toggleMap}
@@ -53,8 +52,8 @@ const PostCard = ({ post }: PostCardProps) => {
               />
             ) : (
               <img 
-                src={post.image} 
-                alt={post.title} 
+                src={post.image_url} 
+                alt={`Post by ${post.username}`}
                 className="w-full rounded-t-[30px]" 
                 style={{ height: '302px', objectFit: 'cover' }}
               />

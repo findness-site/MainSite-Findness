@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { Post } from '@/data/mockPosts';
+import { Post } from '@/data/data_types';
 import { useDistance } from './filters/useDistance';
 import { useRadiusFilter } from './filters/useRadiusFilter';
 import { useSortedPosts } from './filters/useSortedPosts';

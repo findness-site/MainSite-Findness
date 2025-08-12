@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useToast } from "@/hooks/use-toast";
 import { useCamera } from '@/hooks/useCamera';
 import { usePhotoLocation } from '@/hooks/usePhotoLocation';
@@ -13,18 +13,20 @@ import { reverseGeocode } from '@/utils/location/reverseGeocoding';
 
 const Camera = () => {
   const navigate = useNavigate();
+  const { state } = useLocation();
+  const { username } = state || {};
   const { toast } = useToast();
   const [showValueableWarning, setShowValueableWarning] = useState(false);
-  
-  const { 
-    videoRef, 
-    photo, 
+
+  const {
+    videoRef,
+    photo,
     error,
     takePhoto,
     stopCamera,
     startCamera
   } = useCamera();
-  
+
   const { location, showMap, setShowMap, getLocation } = usePhotoLocation();
 
   // Enhanced location processing with reverse geocoding
@@ -38,17 +40,17 @@ const Camera = () => {
     const processLocation = async () => {
       if (location) {
         console.log('Processing location with reverse geocoding:', location);
-        
+
         try {
           // Try to get a human-readable location name
           const locationName = await reverseGeocode(location.lat, location.lng);
-          
+
           const processed = {
             lat: location.lat,
             lng: location.lng,
             name: locationName || location.name || `Location at ${location.lat.toFixed(6)}, ${location.lng.toFixed(6)}`
           };
-          
+
           console.log('Processed location:', processed);
           setProcessedLocation(processed);
         } catch (error) {
@@ -92,19 +94,19 @@ const Camera = () => {
 
     console.log('Creating post with processed location:', processedLocation);
 
-    navigate('/post', { 
-      state: { 
-        photo: photo, 
-        username: '',
+    navigate('/post', {
+      state: {
+        photo: photo,
+        username: username,
         location: processedLocation
-      } 
+      }
     });
   };
 
   return (
     <div className="min-h-screen bg-cream-bg">
       <div className="container mx-auto pl-[42px] pr-11 py-8">
-        
+
         <div className="max-w-md mx-auto space-y-6">
           {showMap && processedLocation ? (
             <LocationMap
@@ -121,7 +123,7 @@ const Camera = () => {
               photo={photo}
             />
           )}
-          
+
           <PhotoActions
             photo={photo}
             showMap={showMap}
@@ -136,13 +138,13 @@ const Camera = () => {
           />
         </div>
       </div>
-      
+
       {showValueableWarning && (
-        <ValueableItemWarning 
+        <ValueableItemWarning
           onClose={() => setShowValueableWarning(false)}
         />
       )}
-      
+
       <Logo />
     </div>
   );

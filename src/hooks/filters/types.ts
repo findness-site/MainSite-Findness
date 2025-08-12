@@ -1,5 +1,5 @@
 
-import { Post } from '@/data/mockPosts';
+import { Post } from '@/data/data_types';
 
 export interface FilteringOptions {
   posts: Post[];

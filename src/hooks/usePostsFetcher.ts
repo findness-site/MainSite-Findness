@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { Post } from '@/data/mockPosts';
+import { Post } from '@/data/data_types';
 /*import { supabase } from '@/lib/supabase';*/
 import { db } from '@/data/firebase/firebaseClient';
 import { ref, onValue, query, orderByChild } from 'firebase/database';

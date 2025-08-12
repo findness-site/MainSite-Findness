@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { Post } from '@/data/mockPosts';
+import { Post } from '@/data/data_types';
 import { usePostsFetcher } from './usePostsFetcher';
 import { useSearchLocation } from './useSearchLocation';
 import { usePostFiltering } from './filters';

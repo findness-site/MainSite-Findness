@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Post } from '@/data/mockPosts';
+import { Post } from '@/data/data_types';
 import PostCard from './PostCard';
 
 interface PostsListProps {
